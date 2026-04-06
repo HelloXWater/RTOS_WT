@@ -71,3 +71,4 @@
 ..\output\main.o: ..\Libraries\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pcd_ex.h
 ..\output\main.o: ..\Libraries\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_hcd.h
 ..\output\main.o: ..\User\./led/bsp_led.h
+..\output\main.o: ..\User\tinyOS\include\tinyOS.h

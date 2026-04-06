@@ -17,8 +17,90 @@
 #include "main.h"
 #include "stm32f4xx.h"
 #include "./led/bsp_led.h"
+#include "tinyOS.h"
+
+/* Defines ------------------------------------------------------------------*/
+#define MEM32(addr)  *(volatile unsigned long*)(addr)
+#define MEM8(addr)   *(volatile unsigned char*)(addr)
+
+/* Global ------------------------------------------------------------------*/
+tTask* currentTask;
+tTask* nextTask;
+tTask* taskTable[2];
+
+/* Function ------------------------------------------------------------------*/
 
 static void SystemClock_Config(void);
+
+/* 任务初始化函数 */
+void tTaskInit(tTask * task, void(*entry)(void *), void* param, tTaskStack* stack)
+{
+  /* 以下为硬件进入/退出PnedSV自动保存的寄存器 */
+  *(--stack) = (unsigned long)(1 << 24);
+  *(--stack) = (unsigned long)entry;
+  *(--stack) = (unsigned long)0x14;
+  *(--stack) = (unsigned long)0x12;
+  *(--stack) = (unsigned long)0x3;
+  *(--stack) = (unsigned long)0x2;
+  *(--stack) = (unsigned long)0x1;
+  *(--stack) = (unsigned long)param;//R0 保存程序的入口参数
+
+  /* 其他寄存器 */
+  *(--stack) = (unsigned long)0x11;
+  *(--stack) = (unsigned long)0x10;
+  *(--stack) = (unsigned long)0x9;
+  *(--stack) = (unsigned long)0x8;
+  *(--stack) = (unsigned long)0x7;
+  *(--stack) = (unsigned long)0x6;
+  *(--stack) = (unsigned long)0x5;
+  *(--stack) = (unsigned long)0x4;
+
+  task->stack = stack;
+}
+
+/* 两个任务 */
+tTask tTask1;
+tTask tTask2;
+
+/* 任务栈 */
+tTaskStack task1EntryEnv[1024];
+tTaskStack task2EntryEnv[1024];
+
+/* 任务调度函数 */
+void tTaskShed()
+{
+  if(currentTask == taskTable[0])
+  {
+    nextTask = taskTable[1];
+  }
+  else 
+  {
+    nextTask = taskTable[0];
+  }
+
+  tTaskSwitch();
+}
+
+void task1Entry(void* param)
+{
+  unsigned long value = *(unsigned long *)param;
+  for(;;)
+  {
+    LED_RED;
+    HAL_Delay(1000);
+    tTaskShed();
+  }
+}
+
+void  task2Entry(void* param)
+{
+  for(;;)
+  {
+    LED_GREEN;
+    HAL_Delay(1000);
+    tTaskShed();
+  }
+}
 
 /**
   * @brief  主函数
@@ -33,47 +115,16 @@ int main(void)
     /* LED 端口初始化 */
     LED_GPIO_Config();
 
-    /* 控制LED灯 */
-    while (1)
-    {
-        LED1( ON );			 // 亮 
-        HAL_Delay(1000);
-        LED1( OFF );		  // 灭
-        HAL_Delay(1000);
+    taskTable[0] = &tTask1;
+    taskTable[1] = &tTask2;
+    nextTask = taskTable[0];
 
-        LED2( ON );			// 亮 
-        HAL_Delay(1000);
-        LED2( OFF );		  // 灭
+    tTaskInit(&tTask1, task1Entry, (void*)0x11111111, &task1EntryEnv[1024]);
+    tTaskInit(&tTask2, task2Entry, (void*)0x22222222, & task2EntryEnv[1024]);
 
-        LED3( ON );			 // 亮 
-        HAL_Delay(1000);
-        LED3( OFF );		  // 灭	
-        
-        /*轮流显示 红绿蓝黄紫青白 颜色*/
-        LED_RED;
-        HAL_Delay(1000);
-        
-        LED_GREEN;
-        HAL_Delay(1000);
-        
-        LED_BLUE;
-        HAL_Delay(1000);
-        
-        LED_YELLOW;
-        HAL_Delay(1000);
-        
-        LED_PURPLE;
-        HAL_Delay(1000);
-                
-        LED_CYAN;
-        HAL_Delay(1000);
-        
-        LED_WHITE;
-        HAL_Delay(1000);
-        
-        LED_RGBOFF;
-        HAL_Delay(1000);
-    }
+    tTaskRunFirst();
+    
+    return 0;
 }
 
 /**

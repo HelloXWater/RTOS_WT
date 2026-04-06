@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>工程模板</TargetName>
+      <TargetName>RTOS-WT</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060528::V5.06 update 5 (build 528)::ARMCC</pCCUsed>
@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F429xx,USE_STM32F429I_DISCO</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS\Include;..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\STM32F4xx_HAL_Driver\Inc;..\User;..\User\led</IncludePath>
+              <IncludePath>..\Libraries\CMSIS\Include;..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\STM32F4xx_HAL_Driver\Inc;..\User;..\User\led;..\User\tinyOS\include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -764,6 +764,21 @@
               <FileName>readme.txt</FileName>
               <FileType>5</FileType>
               <FilePath>..\Doc\readme.txt</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>TinyOS</GroupName>
+          <Files>
+            <File>
+              <FileName>tinyOS.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tinyOS.c</FilePath>
+            </File>
+            <File>
+              <FileName>switch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\switch.c</FilePath>
             </File>
           </Files>
         </Group>
