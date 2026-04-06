@@ -1,0 +1,99 @@
+{
+    "editor.tokenColorCustomizations": {
+        "[Default Dark+]": {
+            "comments": "#7CA668",
+            "textMateRules": [
+                {
+                    "scope": "keyword.control.directive", 
+                    "settings": {
+                        "foreground": "#C586C0",
+                        "fontStyle": "italic"
+                    }
+                },
+                // --- 优化点 1: 增强操作符对比度 ---
+                {
+                    "scope": "keyword.operator", 
+                    "settings": {
+                        "foreground": "#E0E0E0",
+                        "fontStyle": ""
+                    }
+                }
+            ]
+        }
+    },
+    "editor.semanticTokenColorCustomizations": {
+        "[Default Dark+]": {
+            "enabled": true,
+            "rules": {
+                "macro": {
+                    "foreground": "#FF9DA4",
+                    "fontStyle": ""
+                },
+                "enumMember": {
+                    "foreground": "#4FC1FF",
+                    "fontStyle": ""
+                },
+                "parameter": {
+                    "foreground": "#9CDCFE", 
+                    "fontStyle": "italic"
+                },
+                "variable": {
+                    "foreground": "#CCCCCC"
+                },
+                "variable.globalScope": {
+                    "foreground": "#D19A66",
+                    "fontStyle": ""
+                },
+                "variable.static": {
+                     "foreground": "#D19A66",
+                     "fontStyle": "italic"
+                },
+                "variable.readonly": {
+                    "foreground": "#FF9DA4",
+                    "fontStyle": ""
+                },
+                "property": {
+                    "foreground": "#E5C07B",
+                    "fontStyle": ""
+                },
+                "type": {
+                    "foreground": "#4EC9B0",
+                    "fontStyle": ""
+                },
+                "function": {
+                    "foreground": "#DCDCAA",
+                    "fontStyle": ""
+                },
+                "namespace": {
+                    "foreground": "#888888",
+                    "fontStyle": ""
+                },
+                "number": {
+                    "foreground": "#B5CEA8",
+                    "fontStyle": ""
+                }
+            }
+        }
+    },
+    "clangd.arguments": [
+        "--clang-tidy",
+        "--all-scopes-completion",
+        "--completion-style=detailed",
+        "--header-insertion=iwyu",
+        "--pch-storage=disk",
+        "--log=error",
+        "--j=5",
+        "--background-index"
+    ],
+    "[cpp]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    },
+    "[c]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    },
+    
+    // --- 字体修复与优化 ---
+    "editor.fontFamily": "'Fira Code', '等距更纱黑体 SC', 'Sarasa Term SC', Consolas, monospace",
+    "editor.fontWeight": "500", // 控制字重，500 约等于 Retina 或 Medium 的粗细
+    "editor.fontLigatures": true // 注意这里：去掉了你原来末尾的逗号
+}
