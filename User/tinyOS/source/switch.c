@@ -50,12 +50,12 @@ PendSVHandler_nosave
 
 void tTaskRunFirst ()
 {
-    __set_PSP(0);
+    __set_PSP(0);//初始化设置Pendsv为异常，然后跳转到pendsv触发任务切换
     MEM8(NVIC_SYSPRI2) = NVIC_PENDSV_PRI;//设置优先级
-    MEM32(NVIC_INT_CTRL) = NVIC_PENDSVSET;//设置PendSV的处罚
+    MEM32(NVIC_INT_CTRL) = NVIC_PENDSVSET;//设置PendSV的触发
 }   
 
 void tTaskSwitch()
 {
-    MEM32(NVIC_INT_CTRL) = NVIC_PENDSVSET;//设置PendSV的处罚
+    MEM32(NVIC_INT_CTRL) = NVIC_PENDSVSET;//设置PendSV的触发
 }

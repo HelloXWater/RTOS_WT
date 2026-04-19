@@ -15,9 +15,11 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32f429xx.h"
 #include "stm32f4xx.h"
 #include "./led/bsp_led.h"
 #include "tinyOS.h"
+#include <stdint.h>
 
 /* Defines ------------------------------------------------------------------*/
 #define MEM32(addr)  *(volatile unsigned long*)(addr)
@@ -36,7 +38,7 @@ static void SystemClock_Config(void);
 void tTaskInit(tTask * task, void(*entry)(void *), void* param, tTaskStack* stack)
 {
   /* 以下为硬件进入/退出PnedSV自动保存的寄存器 */
-  *(--stack) = (unsigned long)(1 << 24);
+  *(--stack) = (unsigned long)(1 << 24); /* 必须xpsr中的24位必须置1，否则会进入arm模式 */
   *(--stack) = (unsigned long)entry;
   *(--stack) = (unsigned long)0x14;
   *(--stack) = (unsigned long)0x12;
@@ -66,6 +68,26 @@ tTask tTask2;
 tTaskStack task1EntryEnv[1024];
 tTaskStack task2EntryEnv[1024];
 
+/* 设置系统时钟 */
+void SetSysytemClock(uint32_t ms)
+{
+    // 1. 修正毫秒计算公式：除以 1000
+    // 当主频为 180MHz 时，1ms 对应的 tick 数是 180,000
+    SysTick->LOAD = ms * (SystemCoreClock / 1000) - 1; 
+
+    // 2. 修正优先级计算：必须是 (1 << 位数) - 1
+    // 结果为 15，确保 SysTick 是最低优先级
+    NVIC_SetPriority(SysTick_IRQn, (1 << __NVIC_PRIO_BITS) - 1); 
+
+    // 3. 清空当前计数器
+    SysTick->VAL = 0; 
+
+    // 4. 使用系统主频，使能中断与定时器
+    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |
+                    SysTick_CTRL_TICKINT_Msk |
+                    SysTick_CTRL_ENABLE_Msk; 
+}
+
 /* 任务调度函数 */
 void tTaskShed()
 {
@@ -80,26 +102,32 @@ void tTaskShed()
 
   tTaskSwitch();
 }
-
+uint32_t u32Task1Flag = 0;
 void task1Entry(void* param)
 {
-  unsigned long value = *(unsigned long *)param;
+  SetSysytemClock(1);
   for(;;)
   {
-    LED_RED;
+    // LED_RED;
+    u32Task1Flag++;
     HAL_Delay(1000);
-    tTaskShed();
   }
 }
-
+uint32_t u32Task2Flag = 0;
 void  task2Entry(void* param)
 {
   for(;;)
   {
-    LED_GREEN;
+    // LED_GREEN;
+    u32Task2Flag++;
     HAL_Delay(1000);
-    tTaskShed();
+
   }
+}
+void SysTick_Handler(void)
+{
+    HAL_IncTick();
+    tTaskShed();
 }
 
 /**
