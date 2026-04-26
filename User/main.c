@@ -15,9 +15,11 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_armcc.h"
 #include "stm32f429xx.h"
 #include "stm32f4xx.h"
 #include "./led/bsp_led.h"
+#include "stm32f4xx_hal.h"
 #include "tinyOS.h"
 #include <stdint.h>
 
@@ -28,11 +30,29 @@
 /* Global ------------------------------------------------------------------*/
 tTask* currentTask;
 tTask* nextTask;
+tTask* idleTask;
 tTask* taskTable[2];
+
+unsigned tickCounter;
+/* Static ------------------------------------------------------------------*/
+static void SystemClock_Config(void);
 
 /* Function ------------------------------------------------------------------*/
 
-static void SystemClock_Config(void);
+uint32_t tTaskEnterCritical(void)
+{
+  uint32_t primask = __get_PRIMASK();
+  __disable_irq();
+  return primask;
+}
+
+
+uint32_t tTaskExitCritical(uint32_t status)
+{
+  __set_PRIMASK(status);
+}
+
+
 
 /* 任务初始化函数 */
 void tTaskInit(tTask * task, void(*entry)(void *), void* param, tTaskStack* stack)
@@ -58,15 +78,17 @@ void tTaskInit(tTask * task, void(*entry)(void *), void* param, tTaskStack* stac
   *(--stack) = (unsigned long)0x4;
 
   task->stack = stack;
+  task->delayTicks = 0;
 }
 
 /* 两个任务 */
 tTask tTask1;
 tTask tTask2;
-
+tTask tTaskIdle;
 /* 任务栈 */
 tTaskStack task1EntryEnv[1024];
 tTaskStack task2EntryEnv[1024];
+tTaskStack idleTaskEnv[1024];
 
 /* 设置系统时钟 */
 void SetSysytemClock(uint32_t ms)
@@ -88,46 +110,124 @@ void SetSysytemClock(uint32_t ms)
                     SysTick_CTRL_ENABLE_Msk; 
 }
 
+
 /* 任务调度函数 */
 void tTaskShed()
 {
-  if(currentTask == taskTable[0])
+  uint32_t status = tTaskEnterCritical();
+  if(currentTask == idleTask)
   {
-    nextTask = taskTable[1];
-  }
-  else 
-  {
-    nextTask = taskTable[0];
+    if(taskTable[0]->delayTicks == 0)
+    {
+      nextTask = taskTable[0];
+    }
+    else if (taskTable[1]->delayTicks == 0) {
+      nextTask = taskTable[1];
+    }
+    else {
+    {
+      return;
+    }
+    }
+  }else{
+    if(currentTask == taskTable[0])
+    {
+      if(taskTable[1]->delayTicks == 0)
+      {
+        nextTask = taskTable[1];
+      }
+      else if (currentTask->delayTicks != 0) {
+        nextTask = idleTask;
+      }else{
+        tTaskExitCritical(status);
+        return;
+      }
+    }
+    else if(currentTask == taskTable[1])
+    {
+      if(taskTable[0]->delayTicks == 0)
+      {
+        nextTask = taskTable[0];
+      }
+      else if (currentTask->delayTicks != 0) {
+        nextTask = idleTask;
+      }else {
+        tTaskExitCritical(status);
+        return;
+      }
+    }
   }
 
   tTaskSwitch();
+  tTaskExitCritical(status);
 }
-uint32_t u32Task1Flag = 0;
+
+void tTaskDelay(uint32_t delay)
+{
+  uint32_t status = tTaskEnterCritical();
+  currentTask->delayTicks = delay*0.1;
+  tTaskShed();
+  tTaskExitCritical(status);
+}
+
+
+static volatile uint32_t u32Task1Flag = 0;
 void task1Entry(void* param)
 {
   SetSysytemClock(1);
   for(;;)
   {
-    // LED_RED;
-    u32Task1Flag++;
-    HAL_Delay(1000);
+    u32Task1Flag = 0;
+    tTaskDelay(100);
+    u32Task1Flag = 1;
+    tTaskDelay(100);
   }
 }
-uint32_t u32Task2Flag = 0;
+static volatile uint32_t u32Task2Flag = 0;
 void  task2Entry(void* param)
 {
   for(;;)
   {
-    // LED_GREEN;
-    u32Task2Flag++;
-    HAL_Delay(1000);
-
+    u32Task2Flag = 0;
+    tTaskDelay(100);
+    u32Task2Flag = 1;
+    tTaskDelay(100);
   }
 }
+static volatile uint32_t u32TaskIdleFlag = 0;
+void IdleTaskEntry(void* param)
+{
+  for(;;)
+  {
+    u32TaskIdleFlag = 1;
+    tTaskDelay(100);
+    u32TaskIdleFlag = 0;
+    tTaskDelay(100);
+  }
+}
+
+void tTaskSystemTickHandler()
+{
+  uint32_t status = tTaskEnterCritical();
+  int i;
+  for(i = 0; i < 2; i++)
+  {
+    if(taskTable[i]->delayTicks > 0)
+    {
+      taskTable[i]->delayTicks--;
+    }
+  }
+  tickCounter++;
+  tTaskShed();
+  tTaskExitCritical(status);
+}
+
+
+
 void SysTick_Handler(void)
 {
     HAL_IncTick();
-    tTaskShed();
+    tTaskSystemTickHandler();
 }
 
 /**
@@ -147,9 +247,12 @@ int main(void)
     taskTable[1] = &tTask2;
     nextTask = taskTable[0];
 
+    idleTask = &tTaskIdle;
+
     tTaskInit(&tTask1, task1Entry, (void*)0x11111111, &task1EntryEnv[1024]);
     tTaskInit(&tTask2, task2Entry, (void*)0x22222222, & task2EntryEnv[1024]);
-
+    tTaskInit(&tTaskIdle, IdleTaskEntry, (void*)0x33333333, & idleTaskEnv[1024]);
+    
     tTaskRunFirst();
     
     return 0;
