@@ -105,7 +105,8 @@
                 "Libraries/STM32F4xx_HAL_Driver/Inc",
                 "User",
                 "User/led",
-                "User/tinyOS/include"
+                "User/tinyOS/include",
+                "User/tinyOS/source"
             ],
             "defines": [
                 "USE_HAL_DRIVER",

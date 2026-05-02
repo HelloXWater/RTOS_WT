@@ -1,13 +1,4 @@
-#include "tinyOS.h"
 #include "stm32f4xx.h"
-
-/* Defines ------------------------------------------------------------------*/
-#define NVIC_INT_CTRL    0xE000ED04
-#define NVIC_PENDSVSET   0x10000000
-#define NVIC_SYSPRI2     0xE000ED22
-#define NVIC_PENDSV_PRI  0x000000FF
-#define MEM32(addr)  *(volatile unsigned long*)(addr)
-#define MEM8(addr)   *(volatile unsigned char*)(addr)
 
 __asm void PendSV_Handler(void)
 {
@@ -48,14 +39,4 @@ PendSVHandler_nosave
     BX LR                 // 退出中断。硬件会自动从 PSP 中弹出 R0-R3, R12, PC, xPSR
 }
 
-void tTaskRunFirst ()
-{
-    __set_PSP(0);//初始化设置Pendsv为异常，然后跳转到pendsv触发任务切换
-    MEM8(NVIC_SYSPRI2) = NVIC_PENDSV_PRI;//设置优先级
-    MEM32(NVIC_INT_CTRL) = NVIC_PENDSVSET;//设置PendSV的触发
-}   
 
-void tTaskSwitch()
-{
-    MEM32(NVIC_INT_CTRL) = NVIC_PENDSVSET;//设置PendSV的触发
-}

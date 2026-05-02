@@ -901,13 +901,13 @@ ARM Macro Assembler    Page 14
   461 0000001C                 END
               00000000 
               00000000 
-Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
-erwork --depend=..\output\startup_stm32f429xx.d -o..\output\startup_stm32f429xx
-.o -I.\RTE\_RTOS-WT -IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMS
-IS\Device\ST\STM32F4xx\Include -IC:\Keil_v5\ARM\CMSIS\Include --predefine="__MI
-CROLIB SETA 1" --predefine="__UVISION_VERSION SETA 524" --predefine="STM32F429x
-x SETA 1" --list=..\listings\startup_stm32f429xx.lst ..\Libraries\CMSIS\Device\
-ST\STM32F4xx\Source\Templates\arm\startup_stm32f429xx.s
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4 --apcs=interw
+ork --depend=..\output\startup_stm32f429xx.d -o..\output\startup_stm32f429xx.o 
+-I.\RTE\_RTOS-WT -IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\
+Device\ST\STM32F4xx\Include -IC:\Keil_v5\ARM\CMSIS\Include --predefine="__MICRO
+LIB SETA 1" --predefine="__UVISION_VERSION SETA 524" --predefine="STM32F429xx S
+ETA 1" --list=..\listings\startup_stm32f429xx.lst ..\Libraries\CMSIS\Device\ST\
+STM32F4xx\Source\Templates\arm\startup_stm32f429xx.s
 
 
 
@@ -2439,4 +2439,4 @@ es\arm\startup_stm32f429xx.s
 es\arm\startup_stm32f429xx.s
 Comment: __main used once
 2 symbols
-453 symbols in table
+452 symbols in table

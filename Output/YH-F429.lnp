@@ -1,4 +1,4 @@
---cpu=Cortex-M4.fp
+--cpu=Cortex-M4 --fpu=SoftVFP
 "..\output\startup_stm32f429xx.o"
 "..\output\system_stm32f4xx.o"
 "..\output\stm32f4xx_hal_can.o"
@@ -73,6 +73,8 @@
 "..\output\bsp_led.o"
 "..\output\tinyos.o"
 "..\output\switch.o"
+"..\output\tlib.o"
+"..\output\tlist.o"
 --library_type=microlib --strict --scatter "..\Output\YH-F429.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

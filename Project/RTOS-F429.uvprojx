@@ -183,7 +183,7 @@
             <hadIRAM>1</hadIRAM>
             <hadXRAM>0</hadXRAM>
             <uocXRam>0</uocXRam>
-            <RvdsVP>2</RvdsVP>
+            <RvdsVP>1</RvdsVP>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F429xx,USE_STM32F429I_DISCO</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS\Include;..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\STM32F4xx_HAL_Driver\Inc;..\User;..\User\led;..\User\tinyOS\include</IncludePath>
+              <IncludePath>..\Libraries\CMSIS\Include;..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\STM32F4xx_HAL_Driver\Inc;..\User;..\User\led;..\User\tinyOS\include;..\User\tinyOS\source</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -779,6 +779,21 @@
               <FileName>switch.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\tinyOS\source\switch.c</FilePath>
+            </File>
+            <File>
+              <FileName>tlib.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tlib.c</FilePath>
+            </File>
+            <File>
+              <FileName>fconfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\User\tinyOS\source\fconfig.h</FilePath>
+            </File>
+            <File>
+              <FileName>tList.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tList.c</FilePath>
             </File>
           </Files>
         </Group>
