@@ -1,8 +1,13 @@
 ..\output\tinyos.o: ..\User\tinyOS\source\tinyOS.c
 ..\output\tinyos.o: ..\User\tinyOS\include\tinyOS.h
 ..\output\tinyos.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
-..\output\tinyos.o: ..\User\tinyOS\include\tlib.h
 ..\output\tinyos.o: ..\User\tinyOS\source\fconfig.h
+..\output\tinyos.o: ..\User\tinyOS\include\tEvent.h
+..\output\tinyos.o: ..\User\tinyOS\include\tlib.h
+..\output\tinyos.o: ..\User\tinyOS\include\tTask.h
+..\output\tinyos.o: ..\User\tinyOS\include\tSem.h
+..\output\tinyos.o: ..\User\tinyOS\include\tMbox.h
+..\output\tinyos.o: ..\User\tinyOS\include\tMemBlock.h
 ..\output\tinyos.o: ..\Libraries\CMSIS\Device\ST\STM32F4xx\Include\stm32f4xx.h
 ..\output\tinyos.o: ..\Libraries\CMSIS\Device\ST\STM32F4xx\Include\stm32f429xx.h
 ..\output\tinyos.o: ..\Libraries\CMSIS\Include\core_cm4.h

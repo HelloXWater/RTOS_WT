@@ -75,6 +75,14 @@
 "..\output\switch.o"
 "..\output\tlib.o"
 "..\output\tlist.o"
+"..\output\ttask.o"
+"..\output\ttime.o"
+"..\output\tcpu.o"
+"..\output\tapp.o"
+"..\output\tevent.o"
+"..\output\tsem.o"
+"..\output\tmbox.o"
+"..\output\tmemblock.o"
 --library_type=microlib --strict --scatter "..\Output\YH-F429.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

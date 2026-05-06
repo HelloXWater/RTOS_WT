@@ -1,45 +1,3 @@
-// #ifndef TINYOS_H
-// #define TINYOS_H
-
-// #include <stdint.h>
-// #include "tlib.h"
-// #include "fconfig.h"
-
-
-// #define TINYOS_TASK_READY 0
-// #define TINYOS_TASK_DELAY (1 << 1)
-
-// typedef uint32_t tTaskStack ;
-
-// typedef struct _tTask{
-//     tTaskStack* stack;
-//     uint32_t delayTicks;  
-//     tNode delayNode; //添加延时链表节点
-//     uint32_t prio; //添加优先级字段  
-//     uint32_t state; //添加任务状态字段
-// }tTask;
-
-// extern tTask * currentTask;
-// extern tTask * nextTask;
-
-// void tTaskInit(tTask * task, void(*entry)(void *), void* param, uint32_t prio, tTaskStack* stack);
-
-
-// uint32_t tTaskEnterCritical(void);
-// void tTaskExitCritical(uint32_t status);
-
-// void tTaskRunFirst(void);
-// void tTaskSwitch(void);
-
-// void tTaskSchedInit(void);
-// void tTaskShedDisable(void);
-// void tTaskShedEnable(void);
-// void tTaskShed(void);
-
-// tTask* tTaskHighestReady(void);
-
-
-// #endif
 /**
   ******************************************************************************
   * @file    tinyOS.h
@@ -51,28 +9,22 @@
 #define __TINYOS_H
 
 #include <stdint.h>
-#include "tlib.h"
 #include "fconfig.h"
+#include "tEvent.h"
+#include "tTask.h"
+#include "tSem.h"
+#include "tMbox.h"
+#include  "tMemBlock.h"
 
-/* Task States (任务状态宏) ----------------------------------------------------*/
-#define TINYOS_TASK_READY   0
-#define TINYOS_TASK_DELAY   (1 << 1)
 
-/* Type Definitions (类型定义) -------------------------------------------------*/
-typedef uint32_t tTaskStack;
-
-typedef struct _tTask {
-    tTaskStack* stack;       // 任务栈顶指针 (注：必须是结构体第一个元素，底层汇编依赖此偏移量)
-    uint32_t delayTicks;     // 延时节拍数
-    tNode delayNode;         // 延时链表节点
-    uint32_t prio;           // 任务优先级
-    uint32_t state;          // 任务当前状态
-} tTask;
 
 /* Global Variables (暴露给系统的全局变量) ---------------------------------------*/
 extern tTask* currentTask;
 extern tTask* nextTask;
 
+extern tList  taskTable[TINYOS_PRO_COUNT];     // 不同优先级链表
+extern tBitmap taskPrioBitmap;    
+extern tList tTaskDelayList;                  // 优先级位图
 
 /* ========================================================================== */
 /*                           User API (应用层接口)                            */
@@ -83,10 +35,6 @@ extern tTask* nextTask;
  */
 void tinyOS_Init(void);
 
-/**
- * @brief 创建并初始化任务
- */
-void tTaskInit(tTask* task, void(*entry)(void*), void* param, uint32_t prio, tTaskStack* stack);
 
 /**
  * @brief 任务阻塞延时
@@ -128,5 +76,33 @@ tTask* tTaskHighestReady(void);
  */
 void tTaskSystemTickHandler(void);
 
+/**
+ * @brief 将任务插入对用优先级列表
+ */
+void tTaskSchedInsert(tTask* task);
+
+
+/**
+ * @brief 将任务从对应优先级列表移除
+ */
+void tTaskSchedRemove(tTask* task);
+
+/**
+ * @brief 将任务插入
+ */
+void tTaskDelayListInsert(tTask* task, uint32_t delay);
+
+/**
+ * @brief 将任务从延时队列中移除
+ */
+void tTaskDelayListRemove(tTask* task);
+
+void appInit(void);
+
+
+/* 从延时队列中移除接口 */
+void tTaskDelayRemove(tTask* task);
+/* 任务从优先级队列中移除 */
+void tTaskScheRe(tTask* task);
 
 #endif /* __TINYOS_H */

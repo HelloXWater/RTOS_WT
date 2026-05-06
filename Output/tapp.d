@@ -1,0 +1,11 @@
+..\output\tapp.o: ..\User\tinyOS\source\tApp.c
+..\output\tapp.o: ..\User\tinyOS\include\Ttask.h
+..\output\tapp.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\output\tapp.o: ..\User\tinyOS\include\tLib.h
+..\output\tapp.o: ..\User\tinyOS\include\tEvent.h
+..\output\tapp.o: ..\User\tinyOS\include\tMbox.h
+..\output\tapp.o: ..\User\tinyOS\include\tMemBlock.h
+..\output\tapp.o: ..\User\tinyOS\include\tSem.h
+..\output\tapp.o: ..\User\tinyOS\include\tinyOS.h
+..\output\tapp.o: ..\User\tinyOS\source\fconfig.h
+..\output\tapp.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

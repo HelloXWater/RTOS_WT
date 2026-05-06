@@ -1,0 +1,10 @@
+..\output\ttime.o: ..\User\tinyOS\source\tTime.c
+..\output\ttime.o: ..\User\tinyOS\include\tinyOS.h
+..\output\ttime.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\output\ttime.o: ..\User\tinyOS\source\fconfig.h
+..\output\ttime.o: ..\User\tinyOS\include\tEvent.h
+..\output\ttime.o: ..\User\tinyOS\include\tlib.h
+..\output\ttime.o: ..\User\tinyOS\include\tTask.h
+..\output\ttime.o: ..\User\tinyOS\include\tSem.h
+..\output\ttime.o: ..\User\tinyOS\include\tMbox.h
+..\output\ttime.o: ..\User\tinyOS\include\tMemBlock.h

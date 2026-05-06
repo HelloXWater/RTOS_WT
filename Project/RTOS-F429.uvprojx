@@ -795,6 +795,46 @@
               <FileType>1</FileType>
               <FilePath>..\User\tinyOS\source\tList.c</FilePath>
             </File>
+            <File>
+              <FileName>tTask.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tTask.c</FilePath>
+            </File>
+            <File>
+              <FileName>tTime.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tTime.c</FilePath>
+            </File>
+            <File>
+              <FileName>tCpu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tCpu.c</FilePath>
+            </File>
+            <File>
+              <FileName>tApp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tApp.c</FilePath>
+            </File>
+            <File>
+              <FileName>tEvent.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tEvent.c</FilePath>
+            </File>
+            <File>
+              <FileName>tSem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tSem.c</FilePath>
+            </File>
+            <File>
+              <FileName>tMbox.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tMbox.c</FilePath>
+            </File>
+            <File>
+              <FileName>tMemBlock.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\tinyOS\source\tMemBlock.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

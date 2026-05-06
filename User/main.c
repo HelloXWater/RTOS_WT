@@ -19,81 +19,10 @@
 #include "./led/bsp_led.h"
 #include "tinyOS.h"
 
-/* Global App Variables ------------------------------------------------------*/
-/* 用户业务任务与堆栈定义 */
-tTask tTask1;
-tTask tTask2;
-tTaskStack task1EntryEnv[1024];
-tTaskStack task2EntryEnv[1024];
 
 /* Private Function Prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
-
-/* Business Logic (Tasks) ----------------------------------------------------*/
-
-/**
- * @brief 系统时钟重配置 (供任务内部修改测试使用)
- */
-void SetSysytemClock(uint32_t ms)
-{
-    // 修正后的 SysTick 配置逻辑
-    SysTick->LOAD = ms * (SystemCoreClock / 1000) - 1; 
-    NVIC_SetPriority(SysTick_IRQn, (1 << __NVIC_PRIO_BITS) - 1); 
-    SysTick->VAL = 0; 
-    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |
-                    SysTick_CTRL_TICKINT_Msk |
-                    SysTick_CTRL_ENABLE_Msk; 
-}
-
-/* 业务任务 1 */
-int firstSet;
-static volatile uint32_t u32Task1Flag = 0;
-
-void task1Entry(void* param)
-{
-    // 测试代码：位图操作演示
-    tBitmap bitmap;
-    tBitmapInit(&bitmap);
-    for(int i = tBitmapPosCount() - 1; i >= 0; i--)
-    {
-        tBitmapSet(&bitmap, i);
-        firstSet = tBitmapGetFirstSet(&bitmap);
-    }
-    for(int i = 0; i < tBitmapPosCount(); i++)
-    {
-        tBitmapClear(&bitmap, i);
-        firstSet = tBitmapGetFirstSet(&bitmap);
-    }
-
-    SetSysytemClock(1); // 初始化系统节拍(1ms)
-
-    // 核心业务循环
-    for(;;)
-    {
-        u32Task1Flag = 0;
-        tTaskDelay(100);  // 让出 CPU 10 个 ticks
-
-        u32Task1Flag = 1;
-        tTaskDelay(100);
-    }
-}
-
-/* 业务任务 2 */
-static volatile uint32_t u32Task2Flag = 0;
-
-void task2Entry(void* param)
-{
-    // 核心业务循环
-    for(;;)
-    {
-        u32Task2Flag = 0;
-        tTaskDelay(100);  // 让出 CPU 10 个 ticks
-
-        u32Task2Flag = 1;
-        tTaskDelay(100);
-    }
-}
-
+extern void SetSysytemClock(uint32_t ms);
 
 /* Main Entry ----------------------------------------------------------------*/
 
@@ -109,13 +38,8 @@ int main(void)
     /* 2. 操作系统内核初始化 */
     // 一键唤醒 OS 的延时队列、位图和底层空闲任务
     tinyOS_Init();
-
-    /* 3. 注册用户业务任务 */
-    // 初始化并自动挂载到就绪表
-    tTaskInit(&tTask1, task1Entry, (void*)0x11111111, 0, &task1EntryEnv[1024]);
-    tTaskInit(&tTask2, task2Entry, (void*)0x22222222, 1, &task2EntryEnv[1024]);
- 
-    /* 4. 启动操作系统调度 */
+    /* 3. 创建用户业务任务 */
+    appInit();
     // 找出当前最高优先级任务 (此处应为 prio=0 的 tTask1) 赋值给 nextTask
     nextTask = tTaskHighestReady();
     
@@ -166,8 +90,4 @@ static void SystemClock_Config(void)
   if( ret != HAL_OK) { while(1) {} }
 }
 
-void SysTick_Handler(void)
-{
-    HAL_IncTick();               // 维持 HAL 库原有的时间基准
-    tTaskSystemTickHandler();    // 驱动你的 tinyOS 的核心心跳和延时队列
-}
+

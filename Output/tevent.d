@@ -1,0 +1,10 @@
+..\output\tevent.o: ..\User\tinyOS\source\tEvent.c
+..\output\tevent.o: ..\User\tinyOS\include\tinyOS.h
+..\output\tevent.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\output\tevent.o: ..\User\tinyOS\source\fconfig.h
+..\output\tevent.o: ..\User\tinyOS\include\tEvent.h
+..\output\tevent.o: ..\User\tinyOS\include\tlib.h
+..\output\tevent.o: ..\User\tinyOS\include\tTask.h
+..\output\tevent.o: ..\User\tinyOS\include\tSem.h
+..\output\tevent.o: ..\User\tinyOS\include\tMbox.h
+..\output\tevent.o: ..\User\tinyOS\include\tMemBlock.h

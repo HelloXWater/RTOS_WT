@@ -7,6 +7,7 @@
   */
 
 #include "tinyOS.h"
+#include "fconfig.h"
 #include "stm32f4xx.h"
 #include "tlib.h"
 #include <iso646.h>
@@ -28,7 +29,7 @@ tTask* nextTask;
 
 /* 调度与就绪表 */
 tBitmap taskPrioBitmap;                 // 优先级位图
-tTask* taskTable[TINYOS_PRO_COUNT];     // 就绪表数组
+tList  taskTable[TINYOS_PRO_COUNT];     // 不同优先级链表
 
 /* 系统内部组件 */
 uint8_t scheduleLockCount;              // 调度锁计数器
@@ -55,27 +56,31 @@ static void IdleTaskEntry(void* param)
 }
 
 /**
- * @brief 将任务插入就绪列表
+ * @brief 将任务插入对用优先级列表
  */
-static void tTaskSchedInsert(tTask* task)
+void tTaskSchedInsert(tTask* task)
 {
-    taskTable[task->prio] = task;
-    tBitmapSet(&taskPrioBitmap, task->prio);
+  tListAddFirst(&(taskTable[task->prio]), &(task->linkNode));
+  tBitmapSet(&taskPrioBitmap, task->prio);
 }
 
 /**
- * @brief 将任务从就绪列表移除
+ * @brief 将任务从对应优先级列表移除
  */
-static void tTaskSchedRemove(tTask* task)
+void tTaskSchedRemove(tTask* task)
 {
-    taskTable[task->prio] = (tTask*)0;
-    tBitmapClear(&taskPrioBitmap, task->prio);
+    tListRemoveNode(&(taskTable[task->prio]), &(task->linkNode));
+    //移除后如果该优先级列表下没有任务了，清除位图对应位
+    if(tListCount(&(taskTable[task->prio])) == 0)
+    {
+        tBitmapClear(&taskPrioBitmap, task->prio);
+    }
 }
 
 /**
  * @brief 将任务插入延时队列
  */
-static void tTaskDelayListInsert(tTask* task, uint32_t delay)
+void tTaskDelayListInsert(tTask* task, uint32_t delay)
 {
     task->delayTicks = delay * 0.1;
     tListAddLast(&tTaskDelayList, &task->delayNode);
@@ -85,7 +90,7 @@ static void tTaskDelayListInsert(tTask* task, uint32_t delay)
 /**
  * @brief 将任务从延时队列中移除
  */
-static void tTaskDelayListRemove(tTask* task)
+void tTaskDelayListRemove(tTask* task)
 {
     tListRemoveNode(&tTaskDelayList, &(task->delayNode));
     task->state &= ~TINYOS_TASK_DELAY;
@@ -136,43 +141,6 @@ void tTaskUnlock(void)
 /* Core Kernel API ----------------------------------------------------------*/
 
 /**
- * @brief 任务初始化
- */
-void tTaskInit(tTask * task, void(*entry)(void *), void* param, uint32_t prio, tTaskStack* stack)
-{
-    /* 以下为硬件进入/退出 PnedSV 自动保存的寄存器 */
-    *(--stack) = (unsigned long)(1 << 24); /* xPSR 的 T 位必须置 1，否则会发生 UsageFault (进入 ARM 模式) */
-    *(--stack) = (unsigned long)entry;     /* PC 任务入口地址 */
-    *(--stack) = (unsigned long)0x14;      /* LR (返回地址通常是一个错误捕获函数的地址，这里先用魔术数字) */
-    *(--stack) = (unsigned long)0x12;      /* R12 */
-    *(--stack) = (unsigned long)0x3;       /* R3 */
-    *(--stack) = (unsigned long)0x2;       /* R2 */
-    *(--stack) = (unsigned long)0x1;       /* R1 */
-    *(--stack) = (unsigned long)param;     /* R0 程序的入口参数 */
-
-    /* 其他由软件在 PendSV_Handler 中手动保存的寄存器 (R11 - R4) */
-    *(--stack) = (unsigned long)0x11;
-    *(--stack) = (unsigned long)0x10;
-    *(--stack) = (unsigned long)0x9;
-    *(--stack) = (unsigned long)0x8;
-    *(--stack) = (unsigned long)0x7;
-    *(--stack) = (unsigned long)0x6;
-    *(--stack) = (unsigned long)0x5;
-    *(--stack) = (unsigned long)0x4;
-
-    task->stack = stack;
-    task->delayTicks = 0;
-    task->prio = prio;
-    task->state = TINYOS_TASK_READY;
-
-    // 初始化延时节点
-    tNodeInit(&task->delayNode);
-
-    // 默认创建任务后直接插入就绪表
-    tTaskSchedInsert(task);
-}
-
-/**
  * @brief 延时队列初始化
  */
 void tTaskDelayListInit(void)
@@ -185,9 +153,16 @@ void tTaskDelayListInit(void)
  */
 void tinyOS_Init(void)
 {
-    // 初始化调度器所需的基础组件
+    // 初始化调度器所需的基础组件(位图等)
     scheduleLockCount = 0;
     tBitmapInit(&taskPrioBitmap);
+
+    // 初始化每个优先级的就绪链表
+    for(uint32_t i = 0; i < TINYOS_PRO_COUNT; i++)
+    {
+        tListInit(&taskTable[i]);
+    }
+
     tTaskDelayListInit();
 
     // 由系统自动创建底层托底任务 (Idle Task)
@@ -200,7 +175,10 @@ void tinyOS_Init(void)
 tTask* tTaskHighestReady(void)
 {
     uint32_t highestReadyPrio = tBitmapGetFirstSet(&taskPrioBitmap);
-    return taskTable[highestReadyPrio];
+    //取该优先级下对应队列的第一个任务
+    // tNode* node = tListFirst(&taskTable[highestReadyPrio]);
+    // return tNodeParent(node, tTask, linkNode);
+    return tNodeParent(tListFirst(&taskTable[highestReadyPrio]), tTask, linkNode);
 }
 
 /**
@@ -248,23 +226,7 @@ void tTaskShed(void)
     tTaskExitCritical(status);
 }
 
-/**
- * @brief 任务阻塞延时函数
- */
-void tTaskDelay(uint32_t delay)
-{
-    uint32_t status = tTaskEnterCritical();
-    
-    // 1. 挂入延时队列并设置滴答数
-    tTaskDelayListInsert(currentTask, delay);
-    // 2. 从就绪列表中移除，放弃 CPU 运行权
-    tTaskSchedRemove(currentTask);
-    
-    tTaskExitCritical(status);
-    
-    // 3. 立即触发一次调度，让出 CPU
-    tTaskShed();
-}
+
 
 /**
  * @brief 系统Tick节拍处理 (由SysTick_Handler周期调用)
@@ -281,11 +243,30 @@ void tTaskSystemTickHandler(void)
         tTask* task = tNodeParent(node, tTask, delayNode);
         if(--task->delayTicks == 0)
         {
+            //如果任务有等待事件
+            if(task->waitEvent)
+            {
+                //从事件的等待队列中移除
+                tEventRemoveTask(task, (void*)0, tErrorTimeout);
+            }
             // 延时结束，从延时队列移除
             tTaskDelayListRemove(task);
-            // 重新挂载回就绪表
+            // 重新挂载回对应优先级列表
             tTaskSchedInsert(task);
         }
+    }
+
+    //判断当前任务的时间片有没有用完
+    if(--currentTask->timeSlice == 0)
+    {
+      if(tListCount(&taskTable[currentTask->prio]) > 0)
+      {
+        tListRemoveFirst(&taskTable[currentTask->prio]);
+        tListAddLast(&taskTable[currentTask->prio], &(currentTask->linkNode));
+
+        currentTask->timeSlice = TINYOS_SLICE_MAX; //重置时间片
+      }
+        
     }
     
     tTaskExitCritical(status);
